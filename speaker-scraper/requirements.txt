@@ -1,0 +1,6 @@
+yt-dlp
+groq
+torch
+torchaudio
+soundfile
+python-dotenv
