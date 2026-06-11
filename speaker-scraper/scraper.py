@@ -31,8 +31,8 @@ load_dotenv()  # load .env from current directory if it exists
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
-MIN_DURATION = 12000        # 200 min per video
-MAX_DURATION = 15000        # 250 min per video
+MIN_DURATION = 2400        # 40 min per video
+MAX_DURATION = 4200        # 70 min per video
 TOTAL_MIN_SECONDS = 12000   # 200 min total bucket
 TOTAL_MAX_SECONDS = 15000   # 250 min total bucket
 TOP_N_FOR_VAD = 20
