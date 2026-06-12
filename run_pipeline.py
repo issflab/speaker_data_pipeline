@@ -34,7 +34,9 @@ def main():
             sys.executable,
             "pipeline.py",
             str(csv_file),
-            "--diarize"
+            "--diarize",
+            "--speaker-name",
+            speaker_name.replace(" ", "_")
         ],
         cwd=voxsieve_dir,
         check=True

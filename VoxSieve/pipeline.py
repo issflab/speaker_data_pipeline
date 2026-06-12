@@ -318,7 +318,8 @@ def build_item_paths(item: pd.Series, out_root: Path, batch: Optional[BatchPaths
             safe_id=safe_id,
         )
 
-    vid_dir = out_root / safe_id
+    speaker_folder = str(item["Speaker_Name"]).replace(" ", "_")
+    vid_dir = out_root / speaker_folder / safe_id
     return ItemPaths(
         vid_dir=vid_dir,
         seg_dir=vid_dir / "segments",
@@ -633,6 +634,7 @@ def main():
     ap.add_argument("--save-diar", action="store_true", help="Run diarization and save outputs (independent of segmentation)")
     ap.add_argument("--save-asr", action="store_true", help="Run ASR and save outputs (independent of segmentation)")
     ap.add_argument("--overwrite", action="store_true", help="Reprocess items even if outputs already exist")
+    ap.add_argument( "--speaker-name",default=None, help="Speaker folder name")
 
     args = ap.parse_args()
 
