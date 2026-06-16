@@ -1,6 +1,3 @@
-# speaker_data_pipeline
-Integrating speaker scraper and voxSieve repos
-
 # Speaker Data Pipeline
 
 End-to-end pipeline for collecting speaker-centric YouTube content and processing it with VoxSieve for speaker diarization and transcription.
