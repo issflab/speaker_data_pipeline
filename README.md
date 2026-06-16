@@ -2,26 +2,24 @@
 
 End-to-end pipeline for collecting speaker-centric YouTube content and processing it with VoxSieve for speaker diarization and transcription.
 
-```
-
 ## Setup
 
 1. Clone and configure both repositories:
    - `speaker-scraper`
    - `VoxSieve`
 
-2. Configure the required `.env` files in each repository.
+2. Create a `.env` file in each repository.
 
-### speaker-scraper
+**speaker-scraper/.env**
 
-```env
-GROQ_API_KEY=<your_groq_api_key>
+```bash
+GROQ_API_KEY=your_groq_api_key
 ```
 
-### VoxSieve
+**VoxSieve/.env**
 
-```env
-HF_TOKEN=<your_huggingface_token>
+```bash
+HF_TOKEN=your_huggingface_token
 ```
 
 3. Install dependencies:
@@ -30,7 +28,7 @@ HF_TOKEN=<your_huggingface_token>
 pip install -r speaker-scraper/requirements.txt -r VoxSieve/requirements.txt
 ```
 
-## Run the Complete Pipeline
+## Run
 
 ```bash
 python run_pipeline.py "Speaker Name"
@@ -42,23 +40,7 @@ Example:
 python run_pipeline.py "Elon Musk"
 ```
 
-## Run Speaker Scraper Only
-
-```bash
-cd speaker-scraper
-python scraper.py "Speaker Name"
-```
-
-## Run VoxSieve Only
-
-```bash
-cd VoxSieve
-python pipeline.py ../speaker-scraper/Speaker_Name.csv --diarize
-```
-
 ## Output
-
-Processed outputs are saved under:
 
 ```text
 VoxSieve/data_out/
