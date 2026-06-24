@@ -22,3 +22,7 @@ __pycache__/
 # OS files
 .DS_Store
 Thumbs.db
+
+*.csv
+*.txt
+csv_org.py

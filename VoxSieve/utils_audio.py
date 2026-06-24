@@ -15,13 +15,22 @@ def download_youtube_audio(url: str, out_path: Path):
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     # yt-dlp will choose best audio and write to the exact file path
+    # cmd = [
+    #     "yt-dlp",
+    #     "-f", "bestaudio/best",
+    #     "--no-playlist",
+    #     "-o", str(out_path),
+    #     url,
+    # ]
     cmd = [
-        "yt-dlp",
-        "-f", "bestaudio/best",
-        "--no-playlist",
-        "-o", str(out_path),
-        url,
-    ]
+    "yt-dlp",
+    "--js-runtimes", "node",
+    "--cookies", "/home/lkolluru/speaker_data_pipeline/cookies.txt",
+    "-f", "bestaudio/best",
+    "--no-playlist",
+    "-o", str(out_path),
+    url,
+]
     _run(cmd)
 
     if not out_path.exists():

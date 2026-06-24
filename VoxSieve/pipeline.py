@@ -400,6 +400,34 @@ def cut_and_collect_segments(
 
 
 # ── Per-item processing ───────────────────────────────────────────────────────
+def speaker_durations(turns):
+    durations = {}
+
+    for t in turns:
+        spk = t["speaker"]
+        dur = t["end"] - t["start"]
+
+        durations[spk] = durations.get(spk, 0.0) + dur
+
+    return durations
+
+
+def dominant_speaker_info(turns):
+    durations = speaker_durations(turns)
+
+    if not durations:
+        return None, 0.0
+
+    total = sum(durations.values())
+
+    dominant_speaker = max(
+        durations,
+        key=durations.get
+    )
+
+    ratio = durations[dominant_speaker] / total
+
+    return dominant_speaker, ratio
 
 def process_item(
     item: pd.Series,
@@ -449,25 +477,54 @@ def process_item(
     target_speaker: Optional[str] = None
     target_speaker_turns: List[Dict[str, Any]] = []
 
-    if args.diarize:
-        target_speaker = pick_speaker_by_window(
-            diar_turns, t=start_time, window=args.target_window,
-        )
-        if target_speaker is None:
-            print(
-                f"[warn] Could not identify target speaker near "
-                f"{start_time:.2f}s for source={source_ref}. "
-                "Skipping target-speaker-only outputs."
-            )
-        else:
-            target_speaker_turns = filter_turns_to_speaker(diar_turns, target_speaker)
-            save_json(paths.vid_dir / f"{paths.segment_prefix}target_speaker.json", {
-                "speaker_name": speaker_name,
-                "target_speaker_label": target_speaker,
-                "start_time_sec": start_time,
-                "window_sec": args.target_window,
-            })
+    if args.manual_mode:
 
+        target_speaker = pick_speaker_by_window(
+            diar_turns,
+            start_time,
+            window=args.target_window
+        )
+
+        if target_speaker is None:
+            raise RuntimeError(
+                f"No speaker found near {start_time:.2f}s"
+            )
+
+        print(
+            f"[speaker] timestamp-selected={target_speaker}"
+        )
+
+    else:
+
+        target_speaker, dominance_ratio = (
+            dominant_speaker_info(diar_turns)
+        )
+
+        print(
+            f"[speaker] dominant={target_speaker} "
+            f"ratio={dominance_ratio:.2f}"
+        )
+
+        if dominance_ratio < 0.65:
+            raise RuntimeError(
+                f"No dominant speaker found "
+                f"(ratio={dominance_ratio:.2f})"
+            )
+
+    target_speaker_turns = filter_turns_to_speaker(
+        diar_turns,
+        target_speaker
+    )
+
+    save_json(
+        paths.vid_dir / f"{paths.segment_prefix}target_speaker.json",
+        {
+            "speaker_name": speaker_name,
+            "target_speaker_label": target_speaker,
+            "start_time_sec": start_time,
+            "window_sec": args.target_window,
+        }
+    )
     if args.diarize and args.target_only:
         if not target_speaker:
             raise RuntimeError(
@@ -634,6 +691,10 @@ def main():
     ap.add_argument("--save-diar", action="store_true", help="Run diarization and save outputs (independent of segmentation)")
     ap.add_argument("--save-asr", action="store_true", help="Run ASR and save outputs (independent of segmentation)")
     ap.add_argument("--overwrite", action="store_true", help="Reprocess items even if outputs already exist")
+    ap.add_argument(
+    "--manual-mode",
+    action="store_true"
+)
     ap.add_argument( "--speaker-name",default=None, help="Speaker folder name")
 
     args = ap.parse_args()

@@ -38,7 +38,7 @@ TOTAL_MAX_SECONDS = 15000   # 250 min total bucket
 TOP_N_FOR_VAD = 20
 GROQ_MODEL = "llama-3.3-70b-versatile"
 
-
+COOKIE_FILE = "/home/lkolluru/speaker_data_pipeline/cookies.txt"
 # ---------------------------------------------------------------------------
 # Groq setup + helpers
 # ---------------------------------------------------------------------------
@@ -186,7 +186,7 @@ def generate_queries(speaker_name: str, client: Groq) -> list[str]:
 # ---------------------------------------------------------------------------
 # Step 2 — YouTube Search with yt-dlp
 # ---------------------------------------------------------------------------
-def search_youtube(query: str, max_results: int = 20) -> list[dict]:
+def search_youtube(query: str, max_results: int = 20):
     import yt_dlp
 
     ydl_opts = {
@@ -194,28 +194,41 @@ def search_youtube(query: str, max_results: int = 20) -> list[dict]:
         "extract_flat": True,
         "skip_download": True,
         "no_warnings": True,
+        "cookiefile": COOKIE_FILE,
     }
+
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             results = ydl.extract_info(
-                f"ytsearch{max_results}:{query}", download=False
+                f"ytsearch{max_results}:{query}",
+                download=False
             )
             return results.get("entries", []) if results else []
     except Exception as e:
         print(f"      Search failed for query '{query}': {e}")
         return []
 
-
-def fetch_full_metadata(video_id: str) -> Optional[dict]:
+def fetch_full_metadata(video_id: str):
     import yt_dlp
 
     url = f"https://www.youtube.com/watch?v={video_id}"
+
+    ydl_opts = {
+        "quiet": True,
+        "skip_download": True,
+        "no_warnings": True,
+        "cookiefile": COOKIE_FILE,
+    }
+#     ydl_opts = {
+#     "cookiefile": "/home/lkolluru/speaker_data_pipeline/cookies.txt",
+#     "js_runtimes": {"node": "node"},
+# }
+
     try:
-        with yt_dlp.YoutubeDL({"quiet": True, "skip_download": True, "no_warnings": True}) as ydl:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             return ydl.extract_info(url, download=False)
     except Exception:
         return None
-
 
 def collect_candidates(queries: list[str]) -> list[dict]:
     raw: list[dict] = []
@@ -591,23 +604,26 @@ async def main(speaker_name: str) -> None:
     total_dur = sum(v.get("duration", 0) for v in bucket)
     print(f"      -> Total: {total_dur // 60} min {total_dur % 60} sec")
 
-    print("\n[8/9] Detecting start times with Silero-VAD...")
+    print("\n[8/9] Preparing CSV entries...")
     results = []
+
     for i, video in enumerate(bucket, 1):
         url = (
             video.get("webpage_url")
             or f"https://www.youtube.com/watch?v={video.get('id', '')}"
         )
+
         dur_min = (video.get("duration") or 0) // 60
         score = round(video.get("combined_score", 0), 1)
+
         print(
-            f"  [{i}/{len(bucket)}] (score {score}) {url} ({dur_min} min)",
-            end=" -> ",
-            flush=True,
+            f"  [{i}/{len(bucket)}] (score {score}) {url} ({dur_min} min)"
         )
-        start_time = detect_start_time(url)
-        print(start_time)
-        results.append({"url": url, "start_time": start_time})
+
+        results.append({
+            "url": url,
+            "start_time": "0:00:00"
+        })
 
     print("\n[9/9] Writing CSV...")
     filename = write_csv(speaker_name, results)
