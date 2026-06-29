@@ -31,13 +31,7 @@ pip install -r speaker-scraper/requirements.txt -r VoxSieve/requirements.txt
 ## Run
 
 ```bash
-python run_pipeline.py "Speaker Name"
-```
-
-Example:
-
-```bash
-python run_pipeline.py "Elon Musk"
+python run_pipeline.py 
 ```
 
 ## Output
